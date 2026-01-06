@@ -1,7 +1,6 @@
 const mongoose = require("mongoose")
-const schema = mongoose.schema
-
-const Userschema = new schema({
+// const schema = mongoose.schema
+const Userschema = new mongoose.Schema({
 
     user_Email:{
         type : String,
@@ -10,6 +9,10 @@ const Userschema = new schema({
     user_Phone:{
         type : Number,
         required : [true,"Phone is must"]
+    },
+    user_Name:{
+        type : String,
+        required : [true,"Username is must"]
     },
     user_Password:{
         type : String,
