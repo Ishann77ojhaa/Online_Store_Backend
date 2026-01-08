@@ -22,6 +22,9 @@ const Userschema = new mongoose.Schema({
         type: String,
         enum : ["Customer","Admin"],
         default : "Customer"
+    },
+    OTP:{
+         type : Number
     }
 })
 
