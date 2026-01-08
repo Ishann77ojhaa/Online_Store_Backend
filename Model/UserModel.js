@@ -25,6 +25,10 @@ const Userschema = new mongoose.Schema({
     },
     OTP:{
          type : Number
+    },
+    isOTPVerified:{
+        type : Boolean,
+        default : false
     }
 })
 

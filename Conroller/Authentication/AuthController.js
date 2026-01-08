@@ -36,7 +36,7 @@ if(!user_email || !user_password || !user_phone || !user_name){
 }
 
 
-//login User Export
+//login User 
 exports.loginUser = async (req,res)=>{
     const {user_email, user_password} = req.body
     if(!user_email || !user_password){
@@ -46,7 +46,7 @@ exports.loginUser = async (req,res)=>{
   }
 
   // Check if that email exists or not 
-  const founduser = await User.find({user_email : User.user_Email})
+  const founduser = await User.find({user_Email: user_email})
 
      if(founduser.length == 0){
             return res.status(404).json({
@@ -93,10 +93,10 @@ if(!user_email){
 }
 
 //Check if email Exists or not
-     const EmailExists  = await User.find({user_email : User.user_Email})
+     const EmailExists  = await User.find({user_Email: user_email})
     if(EmailExists.length == 0 ){
         return res.status(400).json({
-            message : "The Email You Entered is nor registered"
+            message : "The Email You Entered is not registered"
         })
     }
 //Generate OTP
@@ -129,7 +129,7 @@ if(!user_email || !otp){
 }
 
 //Verify the OTP
-const UserExists = await User.find({user_email : user_Email})
+const UserExists = await User.find({user_Email : user_email})
 
 if(UserExists.length == 0){
     return res.status(400).json({
@@ -145,11 +145,59 @@ if(UserExists[0].OTP !== otp){
 
 //Dispose OTP afer one time 
 UserExists[0].OTP = undefined
+UserExists[0].isOTPVerified = true
 await UserExists[0].save()
 
   res.status(200).json({
     message : "OTP verification Successfull!!"
   })
+
 }
+
+
+//Reset-Password-API
+exports.ResetPassword = async(req,res)=>{
+
+    const {user_email, newpassword, confirmpassword} = req.body
+
+
+    if(!user_email || !newpassword || !confirmpassword){
+        return res.status(400).json({
+            message : "Please provide email , new password and confirm password"
+        })    
+    }
+
+    if(newpassword !== confirmpassword){
+        return res.status(400).json({
+            message : "Password Doesn't match"
+        })
+    }
+
+const UserExists = await User.find({user_Email : user_email})
+if(UserExists.length == 0){
+    return res.status(400).json({
+        message : "Email is not registered"
+    })
+
+    UserExists[0].user_Password = bcrypt.hashSync(newpassword,10)
+    UserExists[0].isOTPVerified = false
+    await UserExists[0].save()
+
+    res.status(200).json({
+        message : "Password Reset Successfully"
+    })
+}
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
