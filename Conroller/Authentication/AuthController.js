@@ -2,7 +2,6 @@ const User = require("../../Model/UserModel")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const sendEmail = require("../../Services/sendEmail")
-const { options } = require("../../Routes/AuthRoutes")
 require("dotenv").config()
 
 //Register User Login 
