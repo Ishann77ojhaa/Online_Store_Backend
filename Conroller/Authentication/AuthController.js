@@ -81,7 +81,7 @@ exports.loginUser = async (req,res)=>{
                     },
             token : token
         })
-     }
+}
 
 
 // forgotpassword-API
@@ -114,81 +114,101 @@ await EmailExists[0].save()
    })
 
    res.status(200).json({
-     message : "Email Sent!!"
+     message : "Email Sent!!" 
    })
 
 }
 
 
 //Verify-OTP-API
-exports.VerifyOTP = async (req,res)=>{
-    const{user_email, otp} = req.body
-if(!user_email || !otp){
-    return res.status(400).json({
-        message : "Please Provide Email and OTP"
-    })
-}
+exports.VerifyOTP = async (req, res) => {
 
-//Verify the OTP
-const UserExists = await User.find({user_Email : user_email})
+    const { user_email, otp } = req.body;
 
-if(UserExists.length == 0){
-    return res.status(400).json({
-        message : "Email is not registered"
-    })
-}
+    if (!user_email || !otp) {
+        return res.status(400).json({
+            message: "Please Provide Email and OTP"
+        });
+    }
 
-if(UserExists[0].OTP !== otp){
+    const UserExists = await User.findOne({
+        user_Email: user_email
+    }).select("+OTP +isOTPVerified");
+
+    if (!UserExists) {
+        return res.status(400).json({
+            message: "Email is not registered"
+        });
+    }
+
+    if (UserExists.OTP !== Number(otp)) {
+        return res.status(400).json({
+            message: "OTP Invalid"
+        });
+    }
+
+    // OTP successfully verified
+    UserExists.OTP = undefined;
+    UserExists.isOTPVerified = true;
+
+    await UserExists.save();
+
     return res.status(200).json({
-        message : "OTP Invalid"
-    })
-}
-
-//Dispose OTP afer one time 
-UserExists[0].OTP = undefined
-UserExists[0].isOTPVerified = true
-await UserExists[0].save()
-
-  res.status(200).json({
-    message : "OTP verification Successfull!!"
-  })
-
-}
+        message: "OTP verification Successful"
+    });
+};
 
 
 //Reset-Password-API
-exports.ResetPassword = async(req,res)=>{
+exports.ResetPassword = async (req, res) => {
 
-    const {user_email, newpassword, confirmpassword} = req.body
+    const {
+        user_email,
+        newpassword,
+        confirmpassword
+    } = req.body;
 
-
-    if(!user_email || !newpassword || !confirmpassword){
+    if (!user_email || !newpassword || !confirmpassword) {
         return res.status(400).json({
-            message : "Please provide email , new password and confirm password"
-        })    
+            message: "Please provide email, new password and confirm password"
+        });
     }
 
-    if(newpassword !== confirmpassword){
+    if (newpassword !== confirmpassword) {
         return res.status(400).json({
-            message : "Password Doesn't match"
-        })
+            message: "Password Doesn't match"
+        });
     }
 
-const UserExists = await User.find({user_Email : user_email})
-if(UserExists.length == 0){
-    return res.status(400).json({
-        message : "Email is not registered"
-    })
+    const UserExists = await User.findOne({
+        user_Email: user_email
+    }).select("+isOTPVerified");
 
-    UserExists[0].user_Password = bcrypt.hashSync(newpassword,10)
-    UserExists[0].isOTPVerified = false
-    await UserExists[0].save()
+    if (!UserExists) {
+        return res.status(400).json({
+            message: "Email is not registered"
+        });
+    }
 
-    res.status(200).json({
-        message : "Password Reset Successfully"
-    })
-}
-}
+    // Make sure OTP was actually verified
+    if (!UserExists.isOTPVerified) {
+        return res.status(400).json({
+            message: "Please verify OTP first"
+        });
+    }
+
+    // Change password
+    UserExists.user_Password = bcrypt.hashSync(newpassword, 10);
+
+    // Reset verification state
+    UserExists.isOTPVerified = false;
+
+    await UserExists.save();
+
+    return res.status(200).json({
+        message: "Password Reset Successfully"
+    });
+};
 
 
 //get me

@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
 
     const sendEmail = async(options)=>{
     var trasporter = nodemailer.createTransport({
@@ -16,7 +16,8 @@ const mailoptions = {
    text : options.message,
 };
 await trasporter.sendMail(mailoptions);
-    };
+
+};
 
     module.exports = sendEmail
 
