@@ -17,7 +17,8 @@ const Productschema = new mongoose.Schema({
     },
     Product_StockQTY:{
         type : Number,
-        required : [true,"QTY is must"]
+        required : [true,"QTY is must"],
+        min: [0, "Stock quantity can't be negative"]
     },
     Product_Status:{
         type: String,

@@ -1,3 +1,4 @@
+const Order = require("../../../Model/OrderSchema")
 const Product = require("../../../Model/ProductModel")
 const fs = require("fs")
 
@@ -5,15 +6,15 @@ const fs = require("fs")
 exports.CreateProduct = async (req,res)=>{
     try{
      const file = req.file
-    let filepath
+    let imagePath
 if(!file){
-    filepath = "https://static.vecteezy.com/system/resources/thumbnails/057/068/323/small/single-fresh-red-strawberry-on-table-green-background-food-fruit-sweet-macro-juicy-plant-image-photo.jpg"
+    imagePath = "https://motobros.com/wp-content/uploads/2024/09/no-image.jpeg"
 }else{
-    filepath = file.filename
+    imagePath =  `${process.env.HOST}/${file.filename}`;
 }
     const {Product_name, Product_description, Product_price, Product_stockQTY, Product_status} = req.body
 
-    if(!Product_name|| !Product_description || !Product_price || !Product_stockQTY || !Product_status){
+    if(!Product_name|| !Product_description || !Product_price || Product_stockQTY===undefined ||Product_stockQTY==="" || !Product_status){
         return res.status(400).json({
             message : "Please Enter Product_name, Product_description, Product_price, Product_stockQTY, Product_status"
         })
@@ -25,7 +26,7 @@ if(!file){
         Product_Price : Product_price,
         Product_StockQTY : Product_stockQTY,
         Product_Status : Product_status,
-        Product_Image : process.env.HOST + filepath
+        Product_Image : imagePath
     })
     res.status(200).json({
         message : "Product Created Successfully"
@@ -62,12 +63,12 @@ exports.deleteproduct = async (req, res) => {
   });
 };
 
-//Update Product API
+//Update Product
 exports.editproduct = async(req,res)=>{
     const {id} = req.params
     const {Product_name, Product_description, Product_price, Product_stockQTY, Product_status} = req.body
 
-     if(!Product_name|| !Product_description || !Product_price || !Product_stockQTY || !Product_status ||!id){
+     if(!Product_name|| !Product_description || !Product_price || Product_stockQTY === undefined || Product_stockQTY === "" || !Product_status ||!id){
         return res.status(400).json({
             message : "Please Enter ID, Product_name, Product_description, Product_price, Product_stockQTY, Product_status"
         })
@@ -100,11 +101,88 @@ if(req.file && req.file.filename){
         Product_Status : Product_status,
         Product_Image : req.file && req.file.filename ? process.env.HOST  + req.file.filename : oldproductImage
     },{
-        new : true,  //If we remove new: true, then datas will return the old product data, even though DB got updated.
+        returnDocument: "after"  //If we remove new: true, then datas will return the old product data, even though DB got updated.
     })
     res.status(200).json({
         message : "Product Updated  Successfully",
         data : datas
     })
 }
+
+//Update product status
+exports.updateProductStatus = async(req,res)=>{
+const {id} = req.params;
+const {productStatus} = req.body
+
+if(!productStatus || !["Available", "Unavailable"].includes(productStatus)){
+    return res.status(400).json({
+        message : "ProductStatus is Inavlid"
+    })
+}
+
+const updatedProduct = await Product.findByIdAndUpdate(id, {
+    Product_Status : productStatus
+}, {
+     returnDocument : "after",
+     runValidators: true
+})
+
+if(!updatedProduct){
+    return res.status(404).json({
+        message : "No product Found"
+    })
+}
+
+res.status(200).json({
+    message : "Updated Successfully",
+    data : updatedProduct
+})
+}
+
+//Update stockQTY and price
+exports.updateStockAndPrice = async (req, res) => {
+  const { id } = req.params;
+  const { ProductStockQTY, ProductPrice } = req.body;
+
+  if (
+    ProductStockQTY === undefined &&
+    ProductPrice === undefined
+  ) {
+    return res.status(400).json({
+      message: "Please provide stock quantity or price"
+    });
+  }
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    return res.status(404).json({
+      message: "No product Found"
+    });
+  }
+
+  const updateData = {};
+
+  if (ProductStockQTY !== undefined) {
+    updateData.Product_StockQTY = ProductStockQTY;
+  }
+
+  if (ProductPrice !== undefined) {
+    updateData.Product_Price = ProductPrice;
+  }
+
+  const updatedProduct = await Product.findByIdAndUpdate(
+    id,
+    updateData,
+    {
+      returnDocument: "after",
+      runValidators: true
+    }
+  );
+
+  res.status(200).json({
+    message: "Updated Successfully",
+    data: updatedProduct
+  });
+};
 

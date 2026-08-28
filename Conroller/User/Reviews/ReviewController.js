@@ -33,8 +33,6 @@ exports.createReview = async(req,res)=>{
     })
 }
 
-
- 
 // //Delete the review 
 exports.deleteReview = async(req,res)=>{
     const reviewId   = req.params.id 

@@ -40,6 +40,7 @@ const AdminOrderRoute = require("./Routes/Admin/AdminOrderRoute")
 const PaymentRoute = require("./Routes/User/PaymentRoute")
 const User = require("./Model/UserModel");
 const { getMe } = require("./Conroller/Authentication/AuthController");
+const DashboardRoute = require("./Routes/Admin/DashboardRoute");
 
 //Dot ENV
 require("dotenv").config()
@@ -49,16 +50,22 @@ require("dotenv").config()
 Connectdatabase()
 
 //All Routes Here
-app.use("/api/auth",authrouter)
-app.use("/api/product",productrouter)
-app.use("/api/admin",AdminUsersRoute)
-app.use("/api/reviews",UserReviewRoute)
-app.use("/api/profile",ProfileRoute)
-app.use("/api/cart",CartRoute)
-app.use("/api/order",orderRoute)
-app.use("/api/admin",AdminOrderRoute)
-app.use("/api/payment",PaymentRoute)
-app.use("/api/me",getMe)
+// All Routes Here
+app.use("/api/auth", authrouter);
+app.use("/api/product", productrouter);
+
+app.use("/api/admin/stats", DashboardRoute);
+
+app.use("/api/admin", AdminUsersRoute);
+app.use("/api/admin", AdminOrderRoute);
+
+app.use("/api/reviews", UserReviewRoute);
+app.use("/api/profile", ProfileRoute);
+app.use("/api/cart", CartRoute);
+app.use("/api/order", orderRoute);
+app.use("/api/payment", PaymentRoute);
+app.use("/api/me", getMe);
+
 
 
 
