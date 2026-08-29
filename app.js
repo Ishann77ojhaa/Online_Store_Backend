@@ -3,6 +3,9 @@ const cors = require('cors')
 
 const app = express()
 
+const jwt = require("jsonwebtoken");
+const { promisify } = require("util");
+
 
 //Sending data to frontend with cors
 const allowedOrigins = [
@@ -85,24 +88,58 @@ const server = app.listen(PORT,()=>{
     console.log("Server has started at PORT " + PORT)
 })
 
-const io = new Server(server)
 
-
-io.on("connection", (socket) => {
-    
-    socket.on("register", async(data) => {
-    const {user_name, user_email, user_password, user_phone } = data
-
-    await User.create({
-             user_Email : user_email,
-             user_Name : user_name,
-             user_Phone : user_phone,
-             user_Password : user_password
-    })
-// socket.emit("response", { message : "User Registered Successfully"})
- io.to(socket.id).emit("response",{ message : "User Registered Successfully"})
-    })
+const io = new Server(server,{
+    cors : {
+        origin : allowedOrigins,
+    }
 })
+
+let onlineUsers = [];
+
+const addToOnlineUsers = (socketId, userId, role)=>{
+   onlineUsers =  onlineUsers.filter((user)=>user.userId.toString() !== userId.toString())
+    onlineUsers.push({
+        socketId,
+        userId : userId.toString(),
+        role})
+    console.log(onlineUsers);
+}
+
+io.on("connection",async(socket) =>{
+    //Take token and validate it
+    const token = socket.handshake.auth.token
+    if(token){
+    const decoded = await promisify(jwt.verify)(
+      token,
+      process.env.SECRET_KEY
+    );
+    const user = await User.findById(decoded.id);
+if(user){
+    addToOnlineUsers(socket.id, user.id, user.user_Role)
+}
+}
+socket.on("UpdateOrderStatus",({status, orderId, userId})=>{
+    const findUser = onlineUsers.find((user)=>user.userId.toString() == userId.toString())
+    io.to(findUser.socketId).emit("statusUpdated",{status, orderId})
+})
+})
+
+// io.on("connection", (socket) => {
+    
+//     socket.on("register", async(data) => {
+//     const {user_name, user_email, user_password, user_phone } = data
+
+//     await User.create({
+//              user_Email : user_email,
+//              user_Name : user_name,
+//              user_Phone : user_phone,
+//              user_Password : user_password
+//     })
+// // socket.emit("response", { message : "User Registered Successfully"})
+//  io.to(socket.id).emit("response",{ message : "User Registered Successfully"})
+//     })
+// })
 
 function getSockerIO(){
     return io
