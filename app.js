@@ -83,7 +83,7 @@ app.get("/", (req, res) => {
 })
 
 //PORT Starting
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 2000;
 const server = app.listen(PORT,()=>{
     console.log("Server has started at PORT " + PORT)
 })
@@ -103,7 +103,6 @@ const addToOnlineUsers = (socketId, userId, role)=>{
         socketId,
         userId : userId.toString(),
         role})
-    console.log(onlineUsers);
 }
 
 io.on("connection",async(socket) =>{
