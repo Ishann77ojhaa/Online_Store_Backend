@@ -9,7 +9,7 @@ const { promisify } = require("util");
 
 //Sending data to frontend with cors
 const allowedOrigins = [
-    "http://localhost:5173",
+    "https://iecomify.vercel.app",
     "http://localhost:5174"
 ];
 
